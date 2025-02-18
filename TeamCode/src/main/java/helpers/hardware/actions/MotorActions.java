@@ -57,7 +57,7 @@ public class MotorActions {
                 outTakeLinkage.Transfer(),
                 outtakeArm.Transfer(),
                 outtakePivot.Transfer(),
-                outtakeTurret.down(),
+                outtakeTurret.up(),
                 lift.transfer(),
                 lift.waitUntilFinished()
         );
@@ -98,17 +98,16 @@ public class MotorActions {
 
 
 
+
     public Action intakeTransfer() {
         return new SequentialAction(
                 t -> {
                     intakePosition = Enums.Intake.Transfer;
                     return false;
                 },
-                spin.stop(),
-                outtakeTurret.down(),
+                outtakeTurret.up(),
                 intakeArm.Extended(),
-                outTakeClaw.PartialOpen(),
-                intakePivot.Transfer(),
+                intakePivot.Extend(),
                 extendo.retracted(),
                 extendo.waitUntilFinished(),
                 outTakeClaw.Open(),
@@ -122,10 +121,39 @@ public class MotorActions {
                     outtakePosition = Enums.OutTake.Deposit;
                     return false;
                 },
-                spin.stop(),
-
+                intakePivot.Transfer(),
                 intakeArm.Transfer(),
-                new SleepAction(0.25),
+                new SleepAction(0.3),
+                outtakeArm.Transfer2(),
+                outTakeClaw.Close(),
+                outtakePivot.TRANSFER2(),
+                intakePivot.Transfer(),
+                new SleepAction(0.2),
+                intakeArm.Extended(),
+                outTakeLinkage.sample(),
+                outtakeArm.sample(),
+                outtakePivot.DepositSample(),
+                lift.setTargetPosition(780),
+                new SleepAction(0.1),
+                spin.slowpoop(),
+                new SleepAction(0.2),
+                spin.stop(),
+                outtakeTurret.down(),
+                lift.waitUntilFinished()
+        );
+    }
+
+    public Action outtakeSample(double Position) {
+        return new SequentialAction(
+                t -> {
+                    outtakePosition = Enums.OutTake.Deposit;
+                    return false;
+                },
+                intakePivot.Transfer(),
+                intakeArm.Transfer(),
+                new SleepAction(0.3),
+                outtakeArm.Transfer2(),
+                intakePivot.Transfer(),
                 outTakeClaw.Close(),
                 outtakePivot.TRANSFER2(),
                 new SleepAction(0.2),
@@ -133,12 +161,18 @@ public class MotorActions {
                 outTakeLinkage.sample(),
                 outtakeArm.sample(),
                 outtakePivot.DepositSample(),
-                lift.setTargetPosition(780),
+                lift.setTargetPosition(Position),
+                new SleepAction(0.1),
+                spin.slowpoop(),
                 new SleepAction(0.2),
-                outtakeTurret.up(),
+                outtakeTurret.down(),
+                spin.stop(),
                 lift.waitUntilFinished()
+
         );
     }
+
+
 
     public Action outtakeSampleAuto() {
         return new SequentialAction(
@@ -146,20 +180,25 @@ public class MotorActions {
                     outtakePosition = Enums.OutTake.Deposit;
                     return false;
                 },
-
+                intakePivot.Transfer(),
                 intakeArm.Transfer(),
-                new SleepAction(0.25),
+                new SleepAction(0.23),
+                outtakeArm.Transfer2(),
                 outTakeClaw.Close(),
+
                 outtakePivot.TRANSFER2(),
                 new SleepAction(0.2),
                 intakeArm.Extended(),
                 outtakeArm.sample(),
                 outtakePivot.DepositSample(),
-                spin.stop(),
                 lift.setTargetPosition(780),
+                new SleepAction(0.1),
+                spin.slowpoop(),
                 new SleepAction(0.2),
-                outtakeTurret.up(),
+                outtakeTurret.down(),
+                spin.stop(),
                 lift.waitUntilFinished()
+
         );
     }
 
@@ -171,8 +210,9 @@ public class MotorActions {
                     outtakePosition = Enums.OutTake.wall;
                     return false;
                 },
-                lift.transfer(),
-                outtakeTurret.up(),
+                lift.setTargetPosition(0),
+                outtakeTurret.down(),
+                new SleepAction(0.1),
                 outTakeLinkage.wall(),
                 outtakeArm.wall(),
                 outtakePivot.wall(),
@@ -189,14 +229,14 @@ public class MotorActions {
                 },
                 spin.stop(),
                 outTakeClaw.Close(),
-                intakeArm.Intake(),
+                intakeArm.Extended(),
                 new SleepAction(0.05),
-                outtakeTurret.down(),
-                intakeArm.Intake(),
                 outTakeLinkage.Specimen(),
                 outtakeArm.Specimen(),
                 outtakePivot.Deposit(),
-                lift.secondTruss()
+                lift.secondTruss(),
+                new SleepAction(0.35),
+                outtakeTurret.up()
         );
     }
 
@@ -208,7 +248,7 @@ public class MotorActions {
                 },
                 outTakeClaw.Close(),
                 new SleepAction(0.1),
-                outtakeTurret.down(),
+                outtakeTurret.up(),
                 intakeArm.Intake(),
                 outTakeLinkage.Specimen(),
                 outtakeArm.Specimen(),
@@ -220,16 +260,12 @@ public class MotorActions {
 
     public Action depositSpecimen(){
         return new SequentialAction(
-                outtakeTurret.down(),
-                outTakeClaw.Close(),
+                lift.setTargetPosition(100),
                 outTakeLinkage.Specimen(),
                 outtakePivot.Deposit2(),
-                lift.setTargetPosition(150),
-                new SleepAction(0.1),
-                lift.waitUntilFinished(),
                 outTakeClaw.Open(),
-                intakeSpecimen(),
-                intakeTransfer()
+                new SleepAction(0.3),
+                intakeSpecimen()
         );
     }
 
@@ -277,7 +313,7 @@ public class MotorActions {
 
 
         public Action retracted() {
-            return setTargetPosition(10);
+            return setTargetPosition(45);
         }
         public Action extended() {
             return setTargetPosition(590);
@@ -326,7 +362,7 @@ public class MotorActions {
             return setTargetPosition(100);
         }
         public Action secondTruss() {
-            return setTargetPosition(470);
+            return setTargetPosition(285);
         }
     }
 
@@ -334,8 +370,8 @@ public class MotorActions {
     public class IntakeArm {
         private static final double GRAB_POSITION = 0.05;
         private static final double INTAKE_POSITION = 0.2;
-        private static final double EXTENDED_POSITION = 0.2;
-        private static final double TRANSFER_POSITION = 0.35;
+        private static final double EXTENDED_POSITION = 0.25;
+        private static final double TRANSFER_POSITION = 0.58;
 
         public Action setTargetPosition(double position) {
             return new Action() {
@@ -378,8 +414,9 @@ public class MotorActions {
     public class IntakePivot {
 
         private static final double GRAB_POSITION = 0.66;
-        private static final double EXTENDED_POSITION = 0.78;
-        private static final double TRANSFER_POSITION = 0.63;
+        private static final double EXTENDED_POSITION = 0.65;
+        private static final double TRANSFER_POSITION = 0.59;
+        private static final double DOWN = 0.3;
 
         public Action setTargetPosition(double position) {
             return t -> {
@@ -400,18 +437,22 @@ public class MotorActions {
             return setTargetPosition(TRANSFER_POSITION);
         }
 
+        public Action Down(){
+            return setTargetPosition(DOWN);
+        }
+
     }
 
 
 
 
     public class OuttakePivot {
-        private static final double TRANSFER_POSITION = 0.23;
-        private static final double DEPOSIT = 0.4;
-        private static final double DEPOSIT2 = 0.32;
-        private static final double DEPOSITSample = 0.64;
-        private static final double WALL_INTAKE = 0.51;
-        private static final double TRANSFER = 0.21;
+        private static final double TRANSFER_POSITION = 0.2;
+        private static final double DEPOSIT = 0.58;
+        private static final double DEPOSIT2 = 0.3;
+        private static final double DEPOSITSample = 0.55;
+        private static final double WALL_INTAKE = 0.48;
+        private static final double TRANSFER = 0.16;
 
         public Action setTargetPosition(double position) {
             return t -> {
@@ -470,10 +511,10 @@ public class MotorActions {
     }
 
     public class OuttakeLinkage {
-        private static final double TRANSFER_POSITION = 0.64;
-        private static final double SPECIMEN_DEPOSIT = 0.75;
+        private static final double TRANSFER_POSITION = 0.7;
+        private static final double SPECIMEN_DEPOSIT = 0.73;
         private static final double WALL_INTAKE = 0.5;
-        private static final double SAMPLE_DEPOSIT = 0.1;
+        private static final double SAMPLE_DEPOSIT = 0.2;
 
         public Action setTargetPosition(double position) {
             return t -> {
@@ -502,7 +543,8 @@ public class MotorActions {
 
     public class OuttakeArm {
         private static final double TRANSFER_POSITION = 0.81;
-        private static final double SPECIMEN_DEPOSIT = 0.88;
+        private static final double TRANSFER_POSITION2 = 0.85;
+        private static final double SPECIMEN_DEPOSIT = 0.95;
         private static final double WALL_INTAKE = 0;
         private static final double SAMPLE_DEPOSIT = 0.4;
 
@@ -515,6 +557,11 @@ public class MotorActions {
 
         public Action Transfer() {
             return setTargetPosition(TRANSFER_POSITION);
+        }
+
+
+        public Action Transfer2() {
+            return setTargetPosition(TRANSFER_POSITION2);
         }
 
         public Action Specimen() {
@@ -530,8 +577,8 @@ public class MotorActions {
     }
 
     public class OuttakeTurret {
-        private static final double UP = 0.1;
-        private static final double DOWN = 0.9;
+        private static final double UP = 0.9;
+        private static final double DOWN = 0.1;
 
         public Action setTargetPosition(double position) {
             return t -> {
@@ -598,7 +645,7 @@ public class MotorActions {
             // Add a variable to store when the rejecting state was entered
             final long[] rejectingStartTime = {0};
             // Define the delay in milliseconds (adjust as needed)
-            final long REJECT_DELAY_MS = 500;
+            final long REJECT_DELAY_MS = 400;
 
             return telemetryPacket -> {
                 if (!started[0]) {
@@ -637,7 +684,7 @@ public class MotorActions {
                             currentState[0] = Enums.IntakeState.REJECTING;
                             // Record the time when rejecting starts
                             rejectingStartTime[0] = System.currentTimeMillis();
-                            motorControl.spin.setPower(-1.0); // Spin backward
+                            motorControl.spin.setPower(-0.45); // Spin backward
                         }
                         return true; // Continue searching
 
@@ -669,7 +716,15 @@ public class MotorActions {
          */
         public Action slow() {
             return telemetryPacket -> {
-                motorControl.spin.setPower(0.4);
+                motorControl.spin.setPower(0.5);
+                return false;
+            };
+        }
+
+
+        public Action slowpoop() {
+            return telemetryPacket -> {
+                motorControl.spin.setPower(-0.45);
                 return false;
             };
         }

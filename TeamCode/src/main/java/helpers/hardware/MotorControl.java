@@ -106,7 +106,7 @@ public class MotorControl {
 
     public static class Extendo extends ControlledDevice {
 
-        private static double p = 0.005, i = 0, d = 0.0002;
+        private static double p = 0.009, i = 0, d = 0.0002;
         /**
          * This initializes the slide motor. This should be run before any other methods.
          *

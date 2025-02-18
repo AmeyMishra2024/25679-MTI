@@ -17,6 +17,7 @@ import java.util.List;
  *
  * This version also provides overloads for adding wait actions that trigger by time, by condition, or by both.
  */
+
 public abstract class PathChainAutoOpMode extends ActionOpMode {
 
     // Dashboard instance (if desired)
@@ -157,8 +158,8 @@ public abstract class PathChainAutoOpMode extends ActionOpMode {
         // Use boxed Double so it can be null if not set.
         Double triggerTime; // in seconds; may be null
         WaitCondition condition; // may be null
-        Action action;
-        boolean triggered;
+        public Action action;
+        public boolean triggered;
 
         // Constructor: time-only trigger.
         public WaitAction(double triggerTime, Action action) {

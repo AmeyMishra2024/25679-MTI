@@ -11,6 +11,7 @@ import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Constants;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import helpers.data.Enums;
 import helpers.hardware.MotorControl;
@@ -24,6 +25,8 @@ import pedroPathing.constants.LConstants;
  * It extends PathChainAutoOpMode so that you only need to override buildPathChains() and buildTaskList(),
  * and also provide implementations for the dummy methods that integrate with your follower.
  */
+
+@Disabled
 @Autonomous(name = "Bucket Sample")
 public class BucketAuto extends PathChainAutoOpMode {
 
@@ -132,10 +135,10 @@ public class BucketAuto extends PathChainAutoOpMode {
         tasks.clear();
 
         // Preload task.
-        PathChainTask preloadTask = new PathChainTask(scorePreload, 0.8)
+        PathChainTask preloadTask = new PathChainTask(scorePreload, 0.5)
                 .addWaitAction(() -> motorControl.lift.closeEnough(770), new SequentialAction(
                         motorActions.outTakeLinkage.sample(),
-                        new SleepAction(0.5),
+                        new SleepAction(0.4),
                         motorActions.outtakeTransfer(),
                         motorActions.intakePivot.Grab(),
                         motorActions.intakeArm.Grab()
@@ -152,10 +155,10 @@ public class BucketAuto extends PathChainAutoOpMode {
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
         tasks.add(pickup1Task);
 
-        PathChainTask score1Task = new PathChainTask(score1, 0.8)
+        PathChainTask score1Task = new PathChainTask(score1, 0.5)
                 .addWaitAction(() -> motorControl.lift.closeEnough(770), new SequentialAction(
                         motorActions.outTakeLinkage.sample(),
-                        new SleepAction(0.5),
+                        new SleepAction(0.4),
                         motorActions.outtakeTransfer(),
                         motorActions.intakePivot.Grab(),
                         motorActions.intakeArm.Grab()
@@ -171,10 +174,10 @@ public class BucketAuto extends PathChainAutoOpMode {
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
         tasks.add(pickup2Task);
 
-        PathChainTask score2Task = new PathChainTask(score2, 0.8)
+        PathChainTask score2Task = new PathChainTask(score2, 0.5)
                 .addWaitAction(() -> motorControl.lift.closeEnough(770), new SequentialAction(
                         motorActions.outTakeLinkage.sample(),
-                        new SleepAction(0.5),
+                        new SleepAction(0.4),
                         motorActions.outtakeTransfer(),
                         motorActions.intakePivot.Grab(),
                         motorActions.intakeArm.Grab()
@@ -189,10 +192,10 @@ public class BucketAuto extends PathChainAutoOpMode {
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
         tasks.add(pickup3Task);
 
-        PathChainTask score3Task = new PathChainTask(score3, 1)
+        PathChainTask score3Task = new PathChainTask(score3, 0.5)
                 .addWaitAction(() -> motorControl.lift.closeEnough(770), new SequentialAction(
                         motorActions.outTakeLinkage.sample(),
-                        new SleepAction(0.5),
+                        new SleepAction(0.4),
                         motorActions.outtakeTransfer(),
                         motorActions.intakePivot.Grab(),
                         motorActions.intakeArm.Grab()

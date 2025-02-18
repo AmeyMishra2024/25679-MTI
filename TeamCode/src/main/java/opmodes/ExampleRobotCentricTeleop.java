@@ -2,6 +2,7 @@ package opmodes;
 
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.util.Constants;
@@ -31,14 +32,21 @@ public class ExampleRobotCentricTeleop extends ActionOpMode {
     private MotorActions motorActions;
 
     private DetectedColor allianceColor = DetectedColor.RED;
+    private boolean autoOuttake = false;
+    private boolean secondBucket = false;
 
+    private boolean gamepad1XPressed = false;
     private boolean gamepad2XPressed = false;
+    private boolean gamepad2YPressed = false;
+    private boolean gamepad2APressed = false;
     private boolean poopPressed = false;
     private boolean dpadDownPressed = false;
     private boolean rightBumperPressed = false;
     private boolean leftBumperPressed = false;
     private boolean rightTriggerPressed = false;
     private boolean leftTriggerPressed = false;
+
+
 
 
     /** This method is call once when init is played, it initializes the follower **/
@@ -69,29 +77,71 @@ public class ExampleRobotCentricTeleop extends ActionOpMode {
     @Override
     public void loop() {
 
-        if (gamepad1.x && !gamepad2XPressed) {
+        if (gamepad1.x && !gamepad1XPressed) {
+            autoOuttake = !autoOuttake;
+            gamepad1XPressed = true;
+        } else if (!gamepad1.x) {
+            gamepad1XPressed = false;
+        }
+
+        if (gamepad2.a && !gamepad2APressed) {
+            motorControl.extendo.reset();
+            gamepad2APressed = true;
+        } else if (!gamepad2.a) {
+            gamepad2APressed = false;
+        }
+
+        if (gamepad2.y && !gamepad2YPressed) {
+            secondBucket = !secondBucket;
+            gamepad2YPressed = true;
+        } else if (!gamepad1.y) {
+            gamepad2YPressed = false;
+        }
+
+        if (gamepad2.x && !gamepad2XPressed) {
             if (allianceColor == DetectedColor.RED) {
                 allianceColor = DetectedColor.BLUE;
             } else {
                 allianceColor = DetectedColor.RED;
             }
             gamepad2XPressed = true;
-        } else if (!gamepad1.x) {
+        } else if (!gamepad2.x) {
             gamepad2XPressed = false;
         }
 
         if (gamepad1.right_bumper && !rightBumperPressed) {
-            if (motorActions.intakePosition != Enums.Intake.Extended) {
-                run(motorActions.intakeExtend(420));
+            if (motorActions.intakePosition == Enums.Intake.Transfer) {
+                run(motorActions.intakeExtend(380));
             }
+            else if (motorActions.intakePosition == Enums.Intake.Spin){
+                run(motorActions.intakeExtend(0));
+            }
+
             rightBumperPressed = true;
         } else if (!gamepad1.right_bumper) {
             rightBumperPressed = false;
         }
 
         if (gamepad1.left_bumper && !leftBumperPressed) {
-            if (motorActions.intakePosition == Enums.Intake.Extended) {
-                run(motorActions.spin.eat());
+            run(motorActions.spin.eat());
+            if (autoOuttake) {
+                if (secondBucket){
+                    run(new SequentialAction(
+                            motorActions.intakeGrabUntil(allianceColor),
+                            motorActions.extendo.waitUntilFinished(10),
+                            motorActions.outtakeSample(330)
+                    ) );
+                }
+                else{
+                    run(new SequentialAction(
+                            motorActions.intakeGrabUntil(allianceColor),
+                            motorActions.extendo.waitUntilFinished(10),
+                            new SleepAction(0.1),
+                            motorActions.outtakeSample()
+                    ) );
+                }
+            }
+            else{
                 run(motorActions.intakeGrabUntil(allianceColor));
             }
             leftBumperPressed = true;
@@ -101,7 +151,13 @@ public class ExampleRobotCentricTeleop extends ActionOpMode {
 
         if (gamepad1.right_trigger > 0 && !rightTriggerPressed) {
             if (motorActions.intakePosition == Enums.Intake.Transfer) {
-                run(motorActions.outtakeSample());
+                if (secondBucket){
+                    run(motorActions.outtakeSample(330));
+                }
+                else{
+                    run(motorActions.outtakeSample());
+                }
+
             }
             rightTriggerPressed = true;
         } else if (gamepad1.right_trigger == 0) {
@@ -123,7 +179,8 @@ public class ExampleRobotCentricTeleop extends ActionOpMode {
             if (poopPressed) {
                 run(new ParallelAction(
                         motorActions.intakeExtend(420),
-                        motorActions.spin.poop()
+                        motorActions.extendo.waitUntilFinished(420),
+                        motorActions.spin.slowpoop()
                 ));
             } else {
                 run(new ParallelAction(
@@ -138,7 +195,7 @@ public class ExampleRobotCentricTeleop extends ActionOpMode {
         }
 
         if (gamepad1.a) {
-            run(motorActions.intakeSpecimen());
+            run(new SequentialAction(motorActions.intakeSpecimen(), new SleepAction(0.1), motorActions.outtakeTurret.down()));
         } else if (gamepad1.b) {
             run(motorActions.outtakeSpecimen());
         } else if (gamepad1.y) {
@@ -154,10 +211,10 @@ public class ExampleRobotCentricTeleop extends ActionOpMode {
             rotationFactor = 0.5;
         }
 
-        if (gamepad1.dpad_left) {
+        if (gamepad2.left_bumper) {
             run(motorActions.hang.up());
         }
-        else if (gamepad1.dpad_right) {
+        else if (gamepad2.right_bumper) {
             run(motorActions.hang.down());
         }
         else {
@@ -171,6 +228,8 @@ public class ExampleRobotCentricTeleop extends ActionOpMode {
         telemetry.addData("Y", follower.getPose().getY());
         telemetry.addData("Heading in Degrees", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.addData("Alliance Color:", allianceColor);
+        telemetry.addData("Auto Transfer:", autoOuttake);
+        telemetry.addData("Second Bucket:", secondBucket);
         telemetry.addData("Intake Color:", motorControl.getDetectedColor());
         telemetry.addData("Intake Position State:", motorActions.intakePosition);
         telemetry.addData("Extendo Position:", motorControl.extendo.motor.getCurrentPosition());
