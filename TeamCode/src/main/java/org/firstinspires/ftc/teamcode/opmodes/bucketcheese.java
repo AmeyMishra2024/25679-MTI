@@ -42,6 +42,7 @@ public class bucketcheese extends PathChainAutoOpMode {
     // Key Poses
     // ---------------------------
     private final Pose startPose   = new Pose(9, 111, Math.toRadians(270));
+    private final Pose plusonepose   = new Pose(12, 111, Math.toRadians(270));
     private final Pose scorePose   = new Pose(17, 128, Math.toRadians(315));
     private final Pose pickup1Pose = new Pose(20, 124, Math.toRadians(0));
     private final Pose pickup2Pose = new Pose(20, 130, Math.toRadians(0));
@@ -57,7 +58,7 @@ public class bucketcheese extends PathChainAutoOpMode {
     private PathChain scorePreload;
     private PathChain intake1, intake2, intake3;
     private PathChain score1, score2, score3;
-    private PathChain parkChain;
+    private PathChain parkChain, plusonepickup, plusonescore;
 
     // ---------------------------
     // Extra tasks for multiple cycles
@@ -143,6 +144,25 @@ public class bucketcheese extends PathChainAutoOpMode {
                         motorActions.intakePivot.Extend()
                 )))
                 .build();
+
+        plusonepickup = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(scorePose), new Point(plusonepose)))
+                .setConstantHeadingInterpolation(plusonepose.getHeading())
+                .addParametricCallback(0, () -> run(motorActions.autointakeGrabUntil(Enums.DetectedColor.YELLOW)))
+                .addParametricCallback(0.2, () ->run(motorActions.spin.eat()))
+                .addParametricCallback(0.95, () -> run(motorActions.extendo.setTargetPosition(400)))
+                .build();
+        plusonescore = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(plusonepose), new Point(scorePose)))
+                .setLinearHeadingInterpolation(plusonepose.getHeading(), scorePose.getHeading(), 50)
+                .addParametricCallback(0, () -> run(motorActions.newintakeTransfer()))
+                .addParametricCallback(0, ()->run(motorActions.spin.slow()))
+                .addParametricCallback(0.3, () -> run(new SequentialAction(
+                        motorActions.lift.waitUntilFinished(10),
+                        motorActions.outtakesampleslow()
+                )))
+                .build();
+
     }
 
     @Override
@@ -219,6 +239,22 @@ public class bucketcheese extends PathChainAutoOpMode {
                 .setMaxWaitTime(2)
                 .setWaitCondition(() -> motorControl.lift.closeEnough(770));
         tasks.add(score3Task);
+
+        PathChainTask hpintake1 = new PathChainTask(plusonepickup, 0.2)
+                .setMaxWaitTime(1.25)
+                .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
+        tasks.add(hpintake1);
+
+        PathChainTask hpscore = new PathChainTask(plusonescore, 0.4)
+                .addWaitAction(() -> motorControl.lift.closeEnough(770),
+                        new SequentialAction(
+                                new SleepAction(0.35),
+                                motorActions.outtakeTransfer()
+                        )
+                )
+                .setMaxWaitTime(2)
+                .setWaitCondition(() -> motorControl.lift.closeEnough(770));
+        tasks.add(hpscore);
 
         // 5) Park #1
         PathChainTask parkTask = new PathChainTask(parkChain, 0.2)

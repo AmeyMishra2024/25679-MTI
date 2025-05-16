@@ -89,7 +89,7 @@ public class MotorActions {
                     intakePosition = Enums.Intake.Extended;
                     return false;
                 },
-                intakeArm.Extended(),
+                intakeArm.Intake(),
                 intakePivot.Grab(),
                 extendo.setTargetPosition(Position),
                 extendo.waitUntilFinished());
@@ -300,22 +300,25 @@ public class MotorActions {
                 outtakeArm.newtransferpost(),
                 outtakePivot.newtransfer2(),
                 new SleepAction(0.1),
-                outTakeClaw.Close(),
+                outTakeClaw.PartialClose(),
                 new SleepAction(0.1),
                 intakeArm.Extended(),
                 outTakeLinkage.sample(),
                 outtakeArm.predepo(),
                 outtakePivot.DepositSample(),
                 lift.setTargetPosition(790),
+                outTakeClaw.Close(),
                 new SleepAction(0.1),
                 spin.slowpoop(),
-                new SleepAction(0.2),
+                intakeArm.Intake(),
+                new SleepAction(0.1),
                 spin.stop(),
                 outtakeTurret.half(),
                 intakePivot.Extend(),
                 extendo.retracted(),
-                lift.waitUntilFinished(),
+                lift.waitUntilFinished(750),
                 outtakeArm.sample()
+
         );
     }
 
@@ -579,14 +582,14 @@ public class MotorActions {
             return setTargetPosition(100);
         }
         public Action secondTruss() {
-            return setTargetPosition(310);
+            return setTargetPosition(290);
         }
     }
 
 
     public class IntakeArm {
         private static final double GRAB_POSITION = 0.05;
-        private static final double INTAKE_POSITION = 0.2;
+        private static final double INTAKE_POSITION = 0.15;
         private static final double EXTENDED_POSITION = 0.25;
 
         private static final double TRANSFER_POSITION = 0.45;
@@ -659,7 +662,7 @@ public class MotorActions {
         private static final double TRANSFER_POSITION = 0.58;
         private static final double DOWN = 0.3;
         private static final double edge = 0.18;
-        private static final double newtransfer = 0.7;
+        private static final double newtransfer = 0.64;
         private static final double tauto = 0.55;
 
         public Action setTargetPosition(double position) {
@@ -713,7 +716,7 @@ public class MotorActions {
 
         private static final double depositbetter = 0.65;
 
-        private static final double WALL_INTAKE = 0.48;
+        private static final double WALL_INTAKE = 0.44;
         private static final double TRANSFER = 0.16;
 
         public Action setTargetPosition(double position) {

@@ -22,8 +22,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
  * @version 2.0, 12/30/2024
  */
 
-@TeleOp(name = "Advanced Teleop V2", group = "Examples")
-public class testTeleop extends ActionOpMode {
+@TeleOp(name = "fieldcentricteleop", group = "Examples")
+public class fieldcentricteleop extends ActionOpMode {
     private Follower follower;
     private final Pose startPose = new Pose(0, 0, 0);
     private MotorControl motorControl;
@@ -310,7 +310,7 @@ public class testTeleop extends ActionOpMode {
             hangAutoDropStarted = true;
         }
 
-        follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * rotationFactor, true);
+        follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * rotationFactor, false);
         follower.update();
 
         telemetry.addData("X", follower.getPose().getX());
