@@ -73,7 +73,7 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                 .setLinearHeadingInterpolation(Math.toRadians(depositPose1.getHeading()),
                         Math.toRadians(intake.getHeading()))
                     .addParametricCallback(0.5, () -> motorControl.spin.setPower(0))
-                .addParametricCallback(0, () -> run(new ParallelAction(motorActions.outtakeTurret.up(),motorActions.intakeSpecimen())))
+                .addParametricCallback(0, () -> run(motorActions.intakeSpecimen()))
                 .build();
 
 
@@ -85,11 +85,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(scorePose1)))
                 .setLinearHeadingInterpolation(Math.toRadians(intake.getHeading()),
                         Math.toRadians(scorePose1.getHeading()))
-                .addParametricCallback(0.4, () -> run(new ParallelAction(
-                        motorActions.intakePivot.Transfer(),
-                        motorActions.intakeArm.Intake(),
-                        motorActions.outtakeTurret.up()
-                )))
                 .setZeroPowerAccelerationMultiplier(7)
                 .addParametricCallback(0, () -> run(motorActions.outtakeSpecimen()))
                 .addParametricCallback(0, () -> motorControl.spin.setPower(0))
@@ -103,11 +98,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(scorePose2)))
                 .setLinearHeadingInterpolation(Math.toRadians(intake.getHeading()),
                         Math.toRadians(scorePose2.getHeading()))
-                .addParametricCallback(0.4, () -> run(new ParallelAction(
-                        motorActions.intakePivot.Transfer(),
-                        motorActions.intakeArm.Intake(),
-                        motorActions.outtakeTurret.up()
-                )))
                 .setZeroPowerAccelerationMultiplier(7)
                 .addParametricCallback(0, () -> run(motorActions.outtakeSpecimen()))
                 .addParametricCallback(0.5, () -> motorControl.spin.setPower(0))
@@ -121,10 +111,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(scorePose3)))
                 .setLinearHeadingInterpolation(Math.toRadians(intake.getHeading()),
                         Math.toRadians(scorePose3.getHeading()))
-                .addParametricCallback(0.4, () -> run(new ParallelAction(
-                        motorActions.intakePivot.Transfer(),
-                        motorActions.intakeArm.Intake(),
-                        motorActions.outtakeTurret.up())))
                 .setZeroPowerAccelerationMultiplier(7)
                 .addParametricCallback(0, () -> run(motorActions.outtakeSpecimen()))
                 .addParametricCallback(0.5, () -> motorControl.spin.setPower(0))
@@ -138,10 +124,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(scorePose4)))
                 .setLinearHeadingInterpolation(Math.toRadians(intake.getHeading()),
                         Math.toRadians(scorePose4.getHeading()))
-                .addParametricCallback(0.4, () -> run(new ParallelAction(
-                        motorActions.intakePivot.Transfer(),
-                        motorActions.intakeArm.Intake(),
-                        motorActions.outtakeTurret.up())))
                 .setZeroPowerAccelerationMultiplier(7)
 
                 .addParametricCallback(0, () -> run(motorActions.outtakeSpecimen()))
@@ -158,7 +140,7 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         Math.toRadians(intake.getHeading()))
                 .addParametricCallback(0.2, () -> motorControl.spin.setPower(0))
                 .setZeroPowerAccelerationMultiplier(6)
-                .addParametricCallback(0.2, () -> run(new ParallelAction(motorActions.intakeSpecimen(), motorActions.outtakeTurret.down())))
+                .addParametricCallback(0.2, () -> run(motorActions.intakeSpecimen()))
                 .build();
 
         intake3 = follower.pathBuilder()
@@ -171,7 +153,7 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         Math.toRadians(intake.getHeading()))
                 .addParametricCallback(0.2, () -> motorControl.spin.setPower(0))
                 .setZeroPowerAccelerationMultiplier(6)
-                .addParametricCallback(0.2, () -> run(new ParallelAction(motorActions.intakeSpecimen(), motorActions.outtakeTurret.down())))
+                .addParametricCallback(0.2, () -> run(motorActions.intakeSpecimen()))
                 .build();
 
         intake4 = follower.pathBuilder()
@@ -184,7 +166,7 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         Math.toRadians(intake.getHeading()))
                 .addParametricCallback(0.2, () -> motorControl.spin.setPower(0))
                 .setZeroPowerAccelerationMultiplier(6)
-                .addParametricCallback(0.2, () -> run(new ParallelAction(motorActions.intakeSpecimen(), motorActions.outtakeTurret.down())))
+                .addParametricCallback(0.2, () -> run(motorActions.intakeSpecimen()))
                 .build();
 
 
@@ -195,10 +177,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(preloadPose)))
                 .setLinearHeadingInterpolation(startPose.getHeading(), preloadPose.getHeading())
                 .setZeroPowerAccelerationMultiplier(4)
-                .addParametricCallback(0, () -> run(new SequentialAction(
-                        motorActions.intakePivot.Transfer(),
-                        motorActions.intakeArm.Intake(),
-                        motorActions.outtakeSpecimen())))
                 .build();
 
         // Grab (pickup) paths.
@@ -208,10 +186,7 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(pickup1Control),
                         new Point(pickup1Pose)))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
-                .addParametricCallback(0.8, ()->run(motorActions.extendo.setTargetPosition(300)))
-                .addParametricCallback(0.4, () -> run(new SequentialAction(
-                        motorActions.spin.eat(),
-                        motorActions.intakeArm.Grab())))
+                .addParametricCallback(0.8, ()->run(motorActions.extendo.set(300)))
                 .build();
 
         grabPickup2 = follower.pathBuilder()
@@ -219,7 +194,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(scorePose),
                         new Point(pickup2Pose)))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2Pose.getHeading())
-                .addParametricCallback(0.4, ()->run(motorActions.extendo.setTargetPosition(200)))
                 .build();
 
         grabPickup3 = follower.pathBuilder()
@@ -227,7 +201,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(scorePose),
                         new Point(pickup3Pose)))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
-                .addParametricCallback(0.05, ()->run(motorActions.extendo.setTargetPosition(300)))
                 .build();
 
         // Deposit paths.
@@ -236,7 +209,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
                         new Point(pickup1Pose),
                         new Point(depositPose1)))
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), depositPose1.getHeading())
-                .addParametricCallback(0.4, ()->run(motorActions.extendo.setTargetPosition(300)))
                 .addParametricCallback(0.8, () -> motorControl.spin.setPower(-1.0))
                 .build();
 
@@ -280,53 +252,43 @@ public class SpecimenAuto extends PathChainAutoOpMode {
         // Pickup task 1.
         PathChainTask pickUpTask1 = new PathChainTask(grabPickup1, 0.1)
                 .setMaxWaitTime(0.4)
-                .addWaitAction(0, motorActions.extendo.setTargetPosition(500))
-                .addWaitAction(0.32, motorActions.extendo.setTargetPosition(450))
+                .addWaitAction(0, motorActions.extendo.set(500))
+                .addWaitAction(0.32, motorActions.extendo.set(450))
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
 
         tasks.add(pickUpTask1);
 
         // Deposit task 1.
         PathChainTask depositTask1 = new PathChainTask(depositHP1, 0.2)
-                .addWaitAction(0, motorActions.extendo.setTargetPosition(200));
+                .addWaitAction(0, motorActions.extendo.set(200));
         tasks.add(depositTask1);
 
         // Pickup task 2.
         PathChainTask pickUpTask2 = new PathChainTask(grabPickup2, 0.1)
                 .setMaxWaitTime(0.4)
-                .addWaitAction(0, new ParallelAction(
-                        motorActions.intakeArm.Grab(),
-                        motorActions.spin.eat(),
-                        motorActions.extendo.setTargetPosition(500)
-                ))
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
         tasks.add(pickUpTask2);
 
         // Deposit task 2.
         PathChainTask depositTask2 = new PathChainTask(depositHP2, 0.2)
-                .addWaitAction(0, motorActions.extendo.setTargetPosition(0));
+                .addWaitAction(0, motorActions.extendo.set(0));
         tasks.add(depositTask2);
 
         // Pickup task 3.
         PathChainTask pickUpTask3 = new PathChainTask(grabPickup3, 0.1)
                 .setMaxWaitTime(0.4)
-                .addWaitAction(0, new ParallelAction(
-                        motorActions.intakeArm.Grab(),
-                        motorActions.spin.eat(),
-                        motorActions.extendo.setTargetPosition(550)
-                ))
+
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
         tasks.add(pickUpTask3);
 
         // Deposit task 3.
         PathChainTask depositTask3 = new PathChainTask(depositHP3, 0.2)
-                .addWaitAction(0, motorActions.extendo.setTargetPosition(0));
+                .addWaitAction(0, motorActions.extendo.set(0));
         tasks.add(depositTask3);
 
         // Intake task 1.
         PathChainTask intakeTask1 = new PathChainTask(intake1, 0.2)
-                .addWaitAction(0.05, motorActions.outTakeClaw.Close())
-                .addWaitAction(0.1, motorActions.outtakeArm.Specimen());
+                .addWaitAction(0.05, motorActions.outtakeSpecimen());
         tasks.add(intakeTask1);
 
         // Score task 1.
@@ -335,8 +297,7 @@ public class SpecimenAuto extends PathChainAutoOpMode {
 
         // Intake task 2.
         tasks.add(new PathChainTask(intake2, 0.2)
-                .addWaitAction(0.05, motorActions.outTakeClaw.Close())
-                .addWaitAction(0.1, motorActions.outtakeArm.Specimen()));
+                .addWaitAction(0.05, motorActions.outtakeSpecimen()));
 
         // Score task 2.
         tasks.add(new PathChainTask(score2, 0.1)
@@ -344,16 +305,14 @@ public class SpecimenAuto extends PathChainAutoOpMode {
 
         // Intake task 3.
         tasks.add(new PathChainTask(intake3, 0.2)
-                .addWaitAction(0.05, motorActions.outTakeClaw.Close())
-                .addWaitAction(0.1, motorActions.outtakeArm.Specimen()));
+                .addWaitAction(0.05, motorActions.outtakeSpecimen()));
         // Score task 3.
         tasks.add(new PathChainTask(score3, 0.1)
                 .addWaitAction(0.01, motorActions.depositSpecimen()));
 
         // Intake task 4.
         tasks.add(new PathChainTask(intake4, 0.2)
-                .addWaitAction(0.05, motorActions.outTakeClaw.Close())
-                .addWaitAction(0.1, motorActions.outtakeArm.Specimen()));
+                .addWaitAction(0.05, motorActions.outtakeSpecimen()));
 
         // Score task 4.
         tasks.add(new PathChainTask(score4, 0.1)
@@ -391,7 +350,7 @@ public class SpecimenAuto extends PathChainAutoOpMode {
         motorActions = new MotorActions(motorControl);
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
-        run(motorActions.outTakeClaw.Close());
+        run(motorActions.claw.close());
 
         // Build the paths and tasks.
         buildPathChains();
@@ -404,8 +363,6 @@ public class SpecimenAuto extends PathChainAutoOpMode {
         currentTaskIndex = 0;
         taskPhase = 0;
         pathTimer.resetTimer();
-        run(motorActions.intakePivot.Transfer());
-        run(motorActions.intakeArm.Intake());
     }
 
     @Override

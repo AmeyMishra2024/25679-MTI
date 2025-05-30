@@ -239,6 +239,10 @@ public abstract class PathChainAutoOpMode extends ActionOpMode {
             return this;
         }
 
+        public PathChainTask addWaitAction(WaitCondition condition) {
+            return this;
+        }
+
         /**
          * Add a wait action that triggers when either the specified time has elapsed or the condition is met.
          */

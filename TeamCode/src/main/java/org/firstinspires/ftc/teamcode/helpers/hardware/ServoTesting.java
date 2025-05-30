@@ -5,93 +5,96 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
 @TeleOp(name = "Servo Test", group = "TeleOp")
 public class ServoTesting extends OpMode {
 
-    // Declare servo variables
-    Servo outtakePivot, turret, armLeft, armRight, intakePivot, outtakeRotation, outtakeLinkage, outtakeClaw;
-    AnalogInput intakeSensor;
+    // All your servos
+    Servo ptor, ptol, led, lede, sweeper;
+    Servo intakepivot;
+    Servo outtakeclaw, outtakearmr, outakearml, outakelinkage;
+    Servo intakearmr, intakearml;
+    Servo hangr, hangl;
 
-    // New: Declare motor
-    DcMotor spin;
-
-    // Target positions for each servo
-    public static double intakePivotTarget = 1;
-    public static double outtakePivotTarget = 0.68;
-    public static double turretTarget = 0.1;
-    public static double armLeftTarget = 0.2;
-    public static double armRightTarget = 0.2;
-    public static double outtakeRotationTarget = 0.7;
-    public static double outtakeLinkageTarget = 0.6;
-    public static double outtakeClawTarget = 0.05;
-
-    // New: Power value for spin motor
-    public static double spinPower = 0.0;
-
-    // Analog input range for mapping
-    public static double MIN_ANALOG = 0.115;
-    public static double MAX_ANALOG = 0.905;
+    // Dashboard-tunable targets
+    public static double ptorTarget         = 0.6;
+    public static double ptolTarget         = 0.44;
+    public static double ledTarget          = 0.5;
+    public static double ledeTarget         = 0.5;
+    public static double sweeperTarget      = 0.67;
+    public static double intakepivotTarget  = 0.28;
+    public static double outtakeclawTarget  = 0.3;
+    public static double outtakearmrTarget  = 1;
+    public static double outakearmlTarget   = 1;
+    public static double outakelinkageTarget= 0.57;
+    public static double intakearmrTarget   = 0.2;
+    public static double intakearmlTarget   = 0.2;
+    public static double hangrTarget        = 0.5;
+    public static double hanglTarget        = 0.5;
 
     @Override
     public void init() {
-        // Initialize servos
-        outtakePivot = hardwareMap.get(Servo.class, "outtakepivot");
-        turret = hardwareMap.get(Servo.class, "outtaketurret");
-        outtakeRotation = hardwareMap.get(Servo.class, "outtakerotation");
-        armLeft = hardwareMap.get(Servo.class, "armleft");
-        armRight = hardwareMap.get(Servo.class, "armright");
-        intakePivot = hardwareMap.get(Servo.class, "intakepivot");
-        outtakeLinkage = hardwareMap.get(Servo.class, "outtakelinkage");
-        outtakeClaw = hardwareMap.get(Servo.class, "outtakeclaw");
+        // Map each servo by the exact name you gave
+        ptor          = hardwareMap.get(Servo.class, "ptor");
+        ptol          = hardwareMap.get(Servo.class, "ptol");
+        led           = hardwareMap.get(Servo.class, "led");
+        lede          = hardwareMap.get(Servo.class, "lede");
+        sweeper       = hardwareMap.get(Servo.class, "sweeper");
+        intakepivot   = hardwareMap.get(Servo.class, "intakepivot");
+        outtakeclaw   = hardwareMap.get(Servo.class, "outtakeclaw");
+        outtakearmr   = hardwareMap.get(Servo.class, "outaker");
+        outakearml    = hardwareMap.get(Servo.class, "outakel");
+        outakelinkage = hardwareMap.get(Servo.class, "outakelinkage");
+        intakearmr    = hardwareMap.get(Servo.class, "intaker");
+        intakearml    = hardwareMap.get(Servo.class, "intakel");
+        hangr         = hardwareMap.get(Servo.class, "hangr");
+        hangl         = hardwareMap.get(Servo.class, "hangl");
 
-        // Initialize analog input
-        intakeSensor = hardwareMap.get(AnalogInput.class, "intakesensor");
+        outtakearmr.setDirection(Servo.Direction.REVERSE);
+        intakearmr.setDirection(Servo.Direction.REVERSE);
+        hangr.setDirection(Servo.Direction.REVERSE);
 
-        // New: Initialize spin motor
-        spin = hardwareMap.get(DcMotor.class, "spin");
-
+        // Combine telemetry with dashboard
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
     }
 
     @Override
     public void loop() {
-        // Map voltage to position
-        double normalizedVoltage = mapVoltageToPosition(intakeSensor.getVoltage() / 3.3);
+        // Push positions to each servo
+        ptor.setPosition(ptorTarget);
+        ptol.setPosition(ptolTarget);
+        led.setPosition(ledTarget);
+        lede.setPosition(ledeTarget);
+        sweeper.setPosition(sweeperTarget);
+        intakepivot.setPosition(intakepivotTarget);
+        outtakeclaw.setPosition(outtakeclawTarget);
+        outtakearmr.setPosition(outtakearmrTarget);
+        outakearml.setPosition(outakearmlTarget);
+        outakelinkage.setPosition(outakelinkageTarget);
+        intakearmr.setPosition(intakearmrTarget);
+        intakearml.setPosition(intakearmlTarget);
+        hangr.setPosition(hangrTarget);
+        hangl.setPosition(hanglTarget);
 
-        // Set servo positions
-        intakePivot.setPosition(intakePivotTarget);
-        outtakePivot.setPosition(outtakePivotTarget);
-        turret.setPosition(turretTarget);
-        armLeft.setPosition(armLeftTarget);
-        armRight.setPosition(armRightTarget);
-        outtakeRotation.setPosition(outtakeRotationTarget);
-        outtakeLinkage.setPosition(outtakeLinkageTarget);
-        outtakeClaw.setPosition(outtakeClawTarget);
-
-        // New: Set motor power
-        spin.setPower(spinPower);
-
-        // Telemetry
-        telemetry.addData("Intake Sensor Position", intakeSensor.getVoltage() / 3.3);
-        telemetry.addData("Normalized Position", normalizedVoltage);
-        telemetry.addData("Intake Pivot Target", intakePivotTarget);
-        telemetry.addData("Outtake Pivot Target", outtakePivotTarget);
-        telemetry.addData("Turret Target", turretTarget);
-        telemetry.addData("Arm Left Target", armLeftTarget);
-        telemetry.addData("Arm Right Target", armRightTarget);
-        telemetry.addData("Outtake Rotation Target", outtakeRotationTarget);
-        telemetry.addData("Outtake Linkage Target", outtakeLinkageTarget);
-        telemetry.addData("Outtake Claw Target", outtakeClawTarget);
-        telemetry.addData("Spin Power", spinPower); // New telemetry
+        // Telemetry for tuning
+        telemetry.addData("ptor",         ptorTarget);
+        telemetry.addData("ptol",         ptolTarget);
+        telemetry.addData("led",          ledTarget);
+        telemetry.addData("lede",         ledeTarget);
+        telemetry.addData("sweeper",      sweeperTarget);
+        telemetry.addData("intakepivot",  intakepivotTarget);
+        telemetry.addData("outtakeclaw",  outtakeclawTarget);
+        telemetry.addData("outtakearmr",  outtakearmrTarget);
+        telemetry.addData("outakearml",   outakearmlTarget);
+        telemetry.addData("outakelinkage",outakelinkageTarget);
+        telemetry.addData("intakearmr",   intakearmrTarget);
+        telemetry.addData("intakearml",   intakearmlTarget);
+        telemetry.addData("hangr",        hangrTarget);
+        telemetry.addData("hangl",        hanglTarget);
         telemetry.update();
-    }
-
-    private double mapVoltageToPosition(double voltage) {
-        return Math.abs((voltage - MIN_ANALOG) / (MAX_ANALOG - MIN_ANALOG));
     }
 }

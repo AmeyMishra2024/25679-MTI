@@ -81,8 +81,8 @@ public class ParkDynamicAlignmentTest extends PathChainAutoOpMode {
                 .addParametricCallback(0, () -> {
                     // Example actions in param callback
                     run(new SequentialAction(
-                            motorActions.intakeArm.Grab(),
-                            motorActions.intakePivot.Down(),
+                            motorActions.inArm.sampleGrab(),
+                            motorActions.inPivot.sampleGrab(),
                             motorActions.spin.eatUntil(Enums.DetectedColor.RED, motorControl)
                     ));
                 })
@@ -129,26 +129,26 @@ public class ParkDynamicAlignmentTest extends PathChainAutoOpMode {
         //    If a color is never detected, we exit after 2 seconds
         //    once path is done, we wait an extra 0.5s after condition is met.
         PathChainTask dynamicTask = new PathChainTask(null, 0.2);
-        dynamicTask.addWaitAction(0, motorActions.extendo.setTargetPosition(50));
-        dynamicTask.addWaitAction(0, motorActions.extendo.setTargetPosition(100));
+        dynamicTask.addWaitAction(0, motorActions.extendo.set(50));
+        dynamicTask.addWaitAction(0, motorActions.extendo.set(100));
         dynamicTask.pathChain = null; // i.e. dynamic
         tasks.add(dynamicTask);
 
 
         PathChainTask shiftTask = new PathChainTask(null, 0.0)
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN && motorControl.getDetectedColor() != Enums.DetectedColor.BLUE)
-                .setMaxWaitTime(2.0).addWaitAction(0,motorActions.intakePivot.Grab());
+                .setMaxWaitTime(2.0).addWaitAction(0,motorActions.inPivot.sampleGrab());
 
-        shiftTask.addWaitAction(0, motorActions.extendo.setTargetPosition(150));
-        shiftTask.addWaitAction(0.5, motorActions.extendo.setTargetPosition(250));
+        shiftTask.addWaitAction(0, motorActions.extendo.set(150));
+        shiftTask.addWaitAction(0.5, motorActions.extendo.set(250));
 
         shiftTask.addWaitAction(() ->  motorControl.getDetectedColor() == Enums.DetectedColor.BLUE, new SequentialAction(
                 shiftX(-4.0),
                 new SleepAction(0.5),
-                motorActions.extendo.setTargetPosition(450),
+                motorActions.extendo.set(450),
                 shiftX(+2.0),
                 new SleepAction(0.5),
-                motorActions.extendo.setTargetPosition(500)
+                motorActions.extendo.set(500)
         ));
         shiftTask.addWaitAction(2, new SequentialAction(
                 shiftX(-2.0),

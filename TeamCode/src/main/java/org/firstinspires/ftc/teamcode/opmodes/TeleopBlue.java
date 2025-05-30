@@ -7,7 +7,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.helpers.data.Enums;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.helpers.data.Enums.DetectedColor;
 import org.firstinspires.ftc.teamcode.helpers.hardware.MotorControl;
 import org.firstinspires.ftc.teamcode.helpers.hardware.actions.ActionOpMode;
@@ -15,14 +15,7 @@ import org.firstinspires.ftc.teamcode.helpers.hardware.actions.MotorActions;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
 
-/**
- * This is an example teleop that showcases movement and robot-centric driving.
- *
- * @author Baron Henderson - 20077 The Indubitables
- * @version 2.0, 12/30/2024
- */
-
-@TeleOp(name = "Advanced Teleop V2 BLUE", group = "Examples")
+@TeleOp(name = "Advanced Teleop V2 Blue", group = "Examples")
 public class TeleopBlue extends ActionOpMode {
     private Follower follower;
     private final Pose startPose = new Pose(0, 0, 0);
@@ -31,30 +24,24 @@ public class TeleopBlue extends ActionOpMode {
 
     private DetectedColor allianceColor = DetectedColor.BLUE;
     private boolean autoOuttake = true;
-    private boolean secondBucket = false;
 
-    private boolean gamepad1XPressed = false;
-    private boolean gamepad2XPressed = false;
-    private boolean gamepad2YPressed = false;
-    private boolean gamepad2APressed = false;
-    private boolean poopPressed = false;
-    private boolean dpadDownPressed = false;
+    // Edge-detect flags
+    private boolean startPressed = false;
+    private boolean xPressed = false;
     private boolean rightBumperPressed = false;
     private boolean leftBumperPressed = false;
     private boolean rightTriggerPressed = false;
     private boolean leftTriggerPressed = false;
-    private boolean hangAutoClimbStarted = false;
+    private boolean dpadDownPressed = false;
+    private boolean dpadUpPressed = false;
     private boolean dpadLeftPressed = false;
+    private boolean dpadRightPressed = false;
 
-    private boolean dpadrightPressed = false;
+    private boolean ranInit = false;
 
+    // Track spinning
+    private boolean spinActive = false;
 
-    private boolean hangAutoDropStarted = false;
-
-
-
-
-    /** This method is call once when init is played, it initializes the follower **/
     @Override
     public void init() {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
@@ -64,254 +51,185 @@ public class TeleopBlue extends ActionOpMode {
         motorActions = new MotorActions(motorControl);
     }
 
-    /** This method is called continuously after Init while waiting to be started. **/
-    @Override
-    public void init_loop() {
-    }
-
-    /** This method is called once at the start of the OpMode. **/
     @Override
     public void start() {
         follower.startTeleopDrive();
-        run(new SequentialAction(motorActions.intakeTransfer(),
-                motorActions.outtakeTransfer()));
     }
 
-    /** This is the main loop of the opmode and runs continuously after play **/
     @Override
     public void loop() {
 
-        if (gamepad1.start && !gamepad2YPressed) {
+        if (!ranInit){
+            run(motorActions.safePositions());
+            ranInit = true;
+        }
+
+
+        // Toggle auto-outtake
+        if (gamepad1.start && !startPressed) {
             autoOuttake = !autoOuttake;
-            gamepad2YPressed = true;
+            startPressed = true;
         } else if (!gamepad1.start) {
-            gamepad2YPressed = false;
+            startPressed = false;
         }
 
-        if (gamepad1.x && !gamepad1XPressed) {
-            if (allianceColor == DetectedColor.RED) {
-                allianceColor = DetectedColor.BLUE;
-            } else {
-                allianceColor = DetectedColor.RED;
-            }
-            gamepad1XPressed = true;
+        // Toggle alliance color
+        if (gamepad1.x && !xPressed) {
+            allianceColor = (allianceColor == DetectedColor.RED)
+                    ? DetectedColor.BLUE
+                    : DetectedColor.RED;
+            xPressed = true;
         } else if (!gamepad1.x) {
-            gamepad2XPressed = false;
+            xPressed = false;
         }
-        double liftTarget = motorControl.lift.getTargetPosition();
 
-// RIGHT BUMPER
+        // RIGHT BUMPER: always extend sample
         if (gamepad1.right_bumper && !rightBumperPressed) {
-            if (liftTarget > 50) {
-                run(motorActions.outtakeTurret.down());
-                run(motorActions.outtakePivot.depositbetter());
-            } else {
-                if (motorActions.intakePosition == Enums.Intake.Transfer) {
-                    run(motorActions.intakeExtend(300));
-                } else if (motorActions.intakePosition == Enums.Intake.Spin) {
-                    run(motorActions.intakeExtend(0));
-                }
-            }
+            run(motorActions.specimenExtend(300));
             rightBumperPressed = true;
         } else if (!gamepad1.right_bumper) {
             rightBumperPressed = false;
         }
 
-// LEFT BUMPER
+        // LEFT BUMPER: grab & optional auto-outtake
         if (gamepad1.left_bumper && !leftBumperPressed) {
-            if (liftTarget > 50) {
-                run(motorActions.outtakeTurret.half());
+            run(motorActions.spin.eat());
+            if (autoOuttake) {
+                double extPos = motorControl.extendo.motor.getCurrentPosition();
+                run(new SequentialAction(
+                        motorActions.grabUntilSpecimen(allianceColor),
+                        motorActions.outtakeSample()
+                ));
             } else {
-                run(motorActions.spin.eat());
-
-                if (autoOuttake) {
-                    if (secondBucket) {
-                        double extendoPos = motorControl.extendo.motor.getCurrentPosition();
-                        double sleepTime = (extendoPos < 50) ? 0.4 : 0.2;
-                        run(new SequentialAction(
-                                motorActions.autointakeGrabUntil(allianceColor),
-                                new SleepAction(sleepTime),
-                                motorActions.outtakeSample(330)
-                        ));
-                    } else {
-                        double extendoPos = motorControl.extendo.motor.getCurrentPosition();
-                        double sleepTime = (extendoPos < 60) ? 0.3 : 0.2;
-                        run(new SequentialAction(
-                                motorActions.autointakeGrabUntil(allianceColor),
-                                new SleepAction(sleepTime),
-                                motorActions.outtakesamplenew()
-                        ));
-                    }
-                } else {
-                    run(motorActions.intakeGrabUntil(allianceColor));
-                }
+                run(motorActions.grabUntilSpecimen(allianceColor));
             }
             leftBumperPressed = true;
         } else if (!gamepad1.left_bumper) {
             leftBumperPressed = false;
         }
 
+        // Color detection
         DetectedColor color = motorControl.getDetectedColor();
+        boolean correctColor = color == allianceColor
+                || color == DetectedColor.YELLOW
+                || motorControl.lift.getTargetPosition() > 70;
 
-        if (color == allianceColor || color == DetectedColor.YELLOW || motorControl.lift.getTargetPosition() > 70) {
-            // Correct color detected → Triggers do outtake actions
+        if (correctColor) {
+            // RIGHT TRIGGER: outtake sample
             if (gamepad1.right_trigger > 0 && !rightTriggerPressed) {
-                if (motorActions.intakePosition == Enums.Intake.Transfer) {
-                    if (secondBucket) {
-                        run(motorActions.outtakeSample(330));
-                    } else {
-                        run(motorActions.outtakesamplenew());
-                    }
-                }
+                run(motorActions.outtakeSample());
                 rightTriggerPressed = true;
             } else if (gamepad1.right_trigger == 0) {
                 rightTriggerPressed = false;
             }
-
+            // LEFT TRIGGER: outtake transfer
             if (gamepad1.left_trigger > 0 && !leftTriggerPressed) {
-                if (motorActions.outtakePosition == Enums.OutTake.Deposit) {
-                    run(motorActions.outtakeTransfer());
-                }
+                run(motorActions.outtakeTransfer());
                 leftTriggerPressed = true;
             } else if (gamepad1.left_trigger == 0) {
                 leftTriggerPressed = false;
             }
         } else {
-            // Wrong color detected → Triggers control extendo movement
-            if (gamepad1.right_trigger > 0 && motorControl.extendo.motor.getCurrentPosition() < 550) {
-                int newTarget = Math.min(motorControl.extendo.motor.getCurrentPosition() + 100, 550);
+            // WRONG COLOR: move extendo
+            if (gamepad1.right_trigger > 0) {
+                int target = Math.min(motorControl.extendo.motor.getCurrentPosition() + 100, 600);
                 run(new ParallelAction(
-                        motorActions.extendo.setTargetPosition(newTarget),
+                        motorActions.extendo.set(target),
                         motorActions.extendo.waitUntilFinished()
                 ));
             }
-
-            if (gamepad1.left_trigger > 0 && motorControl.extendo.motor.getCurrentPosition() > 40) {
-                int newTarget = Math.max(motorControl.extendo.motor.getCurrentPosition() - 100, 40);
+            if (gamepad1.left_trigger > 0) {
+                int target = Math.max(motorControl.extendo.motor.getCurrentPosition() - 100, 40);
                 run(new ParallelAction(
-                        motorActions.extendo.setTargetPosition(newTarget),
+                        motorActions.extendo.set(target),
                         motorActions.extendo.waitUntilFinished()
                 ));
             }
         }
 
-
-        if (gamepad1.dpad_up) {
-            if (motorActions.intakePosition == Enums.Intake.Transfer) {
-                if (secondBucket) {
-                    run(motorActions.outtakeSample(330));
-                } else {
-                    run(motorActions.outtakesamplenew());
-                }
-            }
-        }
-
-
+        // D-pad down: toggle spin vs intake
         if (gamepad1.dpad_down && !dpadDownPressed) {
-            poopPressed = !poopPressed;
-            DetectedColor down = motorControl.getDetectedColor();
-
-            double extendPosition;
-            if (down == DetectedColor.UNKNOWN || down == DetectedColor.BLACK) {
-                extendPosition = 200; // If nothing in intake, extend to 500
-            } else if (down == allianceColor || down == DetectedColor.YELLOW) {
-                extendPosition = 200; // Correct color → Extend to 500
-            } else {
-                extendPosition = 200; // Wrong color → Extend to 200
-            }
-
-            if (!poopPressed) {
+            if (!spinActive) {
                 run(new SequentialAction(
-                        motorActions.intakeExtend(extendPosition),
-                        motorActions.extendo.waitUntilFinished(extendPosition),
-                        (down == allianceColor || down == DetectedColor.YELLOW) ? motorActions.spin.poop() : motorActions.spin.slowpoop()
+                        motorActions.specimenExtend(200),
+                        (color == allianceColor || color == DetectedColor.YELLOW)
+                                ? motorActions.spin.poop()
+                                : motorActions.spin.slowpoop()
                 ));
+                spinActive = true;
             } else {
                 run(new ParallelAction(
                         motorActions.spin.stop(),
                         motorActions.intakeTransfer()
                 ));
+                spinActive = false;
             }
-
             dpadDownPressed = true;
         } else if (!gamepad1.dpad_down) {
             dpadDownPressed = false;
         }
 
-        if (gamepad1.a && !gamepad1.start) {
-            run(new SequentialAction(motorActions.intakeSpecimen(), new SleepAction(0.1), motorActions.outtakeTurret.down()));
+        // D-pad up: outtake sample
+        if (gamepad1.dpad_up && !dpadUpPressed) {
+            run(motorActions.outtakeSample());
+            dpadUpPressed = true;
+        } else if (!gamepad1.dpad_up) {
+            dpadUpPressed = false;
+        }
+
+        // Specimen controls
+        if (gamepad1.a) {
+            run(motorActions.intakeSpecimen());
         } else if (gamepad1.b) {
             run(motorActions.outtakeSpecimen());
         } else if (gamepad1.y) {
             run(motorActions.depositSpecimen());
         }
 
+        // Hang controls
+        if (gamepad1.dpad_left && !dpadLeftPressed) {
+            run(motorActions.hang.up());
+            dpadLeftPressed = true;
+        } else if (!gamepad1.dpad_left) {
+            dpadLeftPressed = false;
+        }
+
+        if (gamepad1.dpad_right && !dpadRightPressed) {
+            run(motorActions.hang.down());
+            dpadRightPressed = true;
+        } else if (!gamepad1.dpad_right) {
+            dpadRightPressed = false;
+        }
+
+        // Drive
+        follower.setTeleOpMovementVectors(
+                -gamepad1.right_stick_y,
+                -gamepad1.right_stick_x,
+                -gamepad1.left_stick_x,
+                true
+        );
+        follower.update();
         super.loop();
         motorControl.update();
 
-        double rotationFactor = 1.0;
-
-        if (motorActions.intakePosition != Enums.Intake.Extended){
-            rotationFactor = 0.5;
-        }
-
-        if (gamepad1.dpad_left && !dpadLeftPressed) {
-            run(new SequentialAction(
-                    motorActions.hang.up(),
-                    new SleepAction(3.0),
-                    motorActions.hang.stop()
-            ));
-            dpadLeftPressed = true;
-        } else if (!gamepad1.dpad_left) {
-            dpadLeftPressed = false;
-        }
-        if (gamepad2.right_bumper) {
-            run(motorActions.hang.down());
-        } else if (!gamepad1.dpad_left && !gamepad1.dpad_right) {
-            run(motorActions.hang.stop());
-        }
-
-        if (gamepad1.dpad_right && !dpadrightPressed) {
-            run(motorActions.edgegrabuntil(allianceColor));
-            dpadLeftPressed = true;
-        } else if (!gamepad1.dpad_left) {
-            dpadLeftPressed = false;
-        }
-
-
-
-        if (getRuntime() >= 10 && !hangAutoDropStarted) {
-            run(new SequentialAction(
-                    t -> {
-                        motorControl.hangr.setPower(1);
-                        motorControl.hangl.setPower(1);
-                        new SleepAction(3.0);
-                        return false;
-                    },
-                    new SleepAction(3.0),
-                    motorActions.hang.stop()
-            ));
-            hangAutoDropStarted = true;
-        }
-
-        follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * rotationFactor, true);
-        follower.update();
-
+        // Telemetry
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
-        telemetry.addData("Heading in Degrees", Math.toDegrees(follower.getPose().getHeading()));
-        telemetry.addData("Alliance Color:", allianceColor);
-        telemetry.addData("Auto Transfer:", autoOuttake);
-        telemetry.addData("Second Bucket:", secondBucket);
-        telemetry.addData("Intake Color:", motorControl.getDetectedColor());
-        telemetry.addData("Intake Position State:", motorActions.intakePosition);
-        telemetry.addData("Extendo Position:", motorControl.extendo.motor.getCurrentPosition());
-        telemetry.addData("Lift Position:", motorControl.lift.motor.getCurrentPosition());
+        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
+        telemetry.addData("Alliance", allianceColor);
+        telemetry.addData("AutoOuttake", autoOuttake);
+        telemetry.addData("Detected", color);
+        telemetry.addData("ExtendoPos", motorControl.extendo.motor.getCurrentPosition());
+        telemetry.addData("ExtendoAmps", motorControl.extendo.motor.getCurrent(CurrentUnit.AMPS));
+        telemetry.addData("ExtendoReset", motorControl.extendo.resetting);
+        telemetry.addData("LiftPos", motorControl.lift.motor.getCurrentPosition());
+        telemetry.addData("LiftAmps", motorControl.lift.motor.getCurrent(CurrentUnit.AMPS));
+        telemetry.addData("LiftReset", motorControl.lift.resetting);
         telemetry.update();
     }
 
-    /** We do not use this because everything automatically should disable **/
     @Override
     public void stop() {
+        // no-op
     }
 }

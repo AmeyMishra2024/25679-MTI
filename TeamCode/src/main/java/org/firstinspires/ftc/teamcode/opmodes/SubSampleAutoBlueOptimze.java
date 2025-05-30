@@ -72,22 +72,22 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
         intake1 = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(scorePose), new Point(pickup1Pose)))
                 .setConstantHeadingInterpolation(pickup1Pose.getHeading())
-                .addParametricCallback(0.6, () -> run(motorActions.intakeGrabUntil(Enums.DetectedColor.YELLOW)))
-                .addParametricCallback(1, () -> run(motorActions.extendo.setTargetPosition(250)))
+                .addParametricCallback(0.6, () -> run(motorActions.grabUntilSample(Enums.DetectedColor.YELLOW)))
+                .addParametricCallback(1, () -> run(motorActions.extendo.set(250)))
                 .build();
 
         intake2 = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(scorePose), new Point(pickup2Pose)))
                 .setConstantHeadingInterpolation(pickup2Pose.getHeading())
-                .addParametricCallback(0.6, () -> run(motorActions.intakeGrabUntil(Enums.DetectedColor.YELLOW)))
-                .addParametricCallback(1, () -> run(motorActions.extendo.setTargetPosition(350)))
+                .addParametricCallback(0.6, () -> run(motorActions.grabUntilSample(Enums.DetectedColor.YELLOW)))
+                .addParametricCallback(1, () -> run(motorActions.extendo.set(350)))
                 .build();
 
         intake3 = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(scorePose), new Point(pickup3Pose)))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading(), 50)
-                .addParametricCallback(0.6, () -> run(motorActions.intakeGrabUntil(Enums.DetectedColor.YELLOW)))
-                .addParametricCallback(1, () -> run(motorActions.extendo.setTargetPosition(400)))
+                .addParametricCallback(0.6, () -> run(motorActions.grabUntilSample(Enums.DetectedColor.YELLOW)))
+                .addParametricCallback(1, () -> run(motorActions.extendo.set(400)))
                 .build();
 
         // ============ Score paths ============
@@ -98,7 +98,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                 .addParametricCallback(0, ()->run(motorActions.spin.slow()))
                 .addParametricCallback(0.3, () -> run(new SequentialAction(
                         motorActions.lift.waitUntilFinished(10),
-                        motorActions.outtakeSampleAuto()
+                        motorActions.outtakeSample()
                 )))
                 .build();
 
@@ -109,7 +109,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                 .addParametricCallback(0, () -> run(motorActions.intakeTransfer()))
                 .addParametricCallback(0.3, () -> run(new SequentialAction(
                         motorActions.lift.waitUntilFinished(10),
-                        motorActions.outtakeSampleAuto()
+                        motorActions.outtakeSample()
                 )))
                 .build();
 
@@ -120,14 +120,14 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                 .addParametricCallback(0, ()->run(motorActions.spin.slow()))
                 .addParametricCallback(0.3, () -> run(new SequentialAction(
                         motorActions.lift.waitUntilFinished(10),
-                        motorActions.outtakeSampleAuto()
+                        motorActions.outtakeSample()
                 )))
                 .build();
 
         // ============ Preload path ============
         scorePreload = follower.pathBuilder()
                 .addPath(new BezierCurve(new Point(startPose), new Point(scorePose)))
-                .addParametricCallback(0, () -> run(motorActions.outtakeSampleAuto()))
+                .addParametricCallback(0, () -> run(motorActions.outtakeSample()))
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -136,8 +136,8 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                 .addPath(new BezierCurve(new Point(scorePose), new Point(parkControlPose), new Point(parkPose)))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading())
                 .addParametricCallback(0.5, () -> run(new ParallelAction(
-                        motorActions.intakeArm.Extended(),
-                        motorActions.intakePivot.Extend()
+                        motorActions.inArm.sampleExtended(),
+                        motorActions.inPivot.sampleExtended()
                 )))
                 .build();
     }
@@ -148,15 +148,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
 
         // 1) Preload scoring
         PathChainTask preloadTask = new PathChainTask(scorePreload, 0.35)
-                .addWaitAction(() -> motorControl.lift.closeEnough(770),
-                        new SequentialAction(
-                                motorActions.outTakeLinkage.sample(),
-                                new SleepAction(0.35),
-                                motorActions.outtakeTransfer(),
-                                motorActions.intakePivot.Grab(),
-                                motorActions.intakeArm.Grab()
-                        )
-                )
+
                 .setMaxWaitTime(2)
                 .setWaitCondition(() -> motorControl.lift.closeEnough(770));
         tasks.add(preloadTask);
@@ -165,20 +157,12 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
         PathChainTask pickup1Task = new PathChainTask(intake1, 0.2)
                 .setMaxWaitTime(1.25)
                 .addWaitAction(1, motorActions.intakeTransfer())
-                .addWaitAction(0.3, motorActions.extendo.setTargetPosition(500))
+                .addWaitAction(0.3, motorActions.extendo.set(500))
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
         tasks.add(pickup1Task);
 
         PathChainTask score1Task = new PathChainTask(score1, 0.4)
-                .addWaitAction(() -> motorControl.lift.closeEnough(770),
-                        new SequentialAction(
-                                motorActions.outTakeLinkage.sample(),
-                                new SleepAction(0.35),
-                                motorActions.outtakeTransfer(),
-                                motorActions.intakePivot.Grab(),
-                                motorActions.intakeArm.Grab()
-                        )
-                )
+
                 .setMaxWaitTime(2)
                 .setWaitCondition(() -> motorControl.lift.closeEnough(770));
         tasks.add(score1Task);
@@ -187,20 +171,12 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
         PathChainTask pickup2Task = new PathChainTask(intake2, 0.2)
                 .setMaxWaitTime(1.25)
                 .addWaitAction(1, motorActions.intakeTransfer())
-                .addWaitAction(0, motorActions.extendo.setTargetPosition(500))
+                .addWaitAction(0, motorActions.extendo.set(500))
                 .setWaitCondition(() -> motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN);
         tasks.add(pickup2Task);
 
         PathChainTask score2Task = new PathChainTask(score2, 0.4)
-                .addWaitAction(() -> motorControl.lift.closeEnough(770),
-                        new SequentialAction(
-                                motorActions.outTakeLinkage.sample(),
-                                new SleepAction(0.35),
-                                motorActions.outtakeTransfer(),
-                                motorActions.intakePivot.Grab(),
-                                motorActions.intakeArm.Grab()
-                        )
-                )
+
                 .setMaxWaitTime(2)
                 .setWaitCondition(() -> motorControl.lift.closeEnough(770));
         tasks.add(score2Task);
@@ -213,13 +189,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
         tasks.add(pickup3Task);
 
         PathChainTask score3Task = new PathChainTask(score3, 0.4)
-                .addWaitAction(() -> motorControl.lift.closeEnough(770),
-                        new SequentialAction(
-                                motorActions.outTakeLinkage.sample(),
-                                new SleepAction(0.35),
-                                motorActions.outtakeTransfer()
-                        )
-                )
+
                 .setMaxWaitTime(2)
                 .setWaitCondition(() -> motorControl.lift.closeEnough(770));
         tasks.add(score3Task);
@@ -238,8 +208,8 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
 
         // 6) Dynamic Alignment #1 (null => computeDynamicPath)
         dynamicTask = new PathChainTask(null, 0.2);
-        dynamicTask.addWaitAction(0, motorActions.extendo.setTargetPosition(50));
-        dynamicTask.addWaitAction(0, motorActions.extendo.setTargetPosition(100));
+        dynamicTask.addWaitAction(0, motorActions.extendo.set(50));
+        dynamicTask.addWaitAction(0, motorActions.extendo.set(100));
         tasks.add(dynamicTask);
 
         // 7) SHIFT Task #1
@@ -250,20 +220,20 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                                 && motorControl.getDetectedColor() != Enums.DetectedColor.RED
                 )
                 .setMaxWaitTime(3.0)
-                .addWaitAction(0, motorActions.intakePivot.Grab());
+                .addWaitAction(0, motorActions.inPivot.sampleGrab());
 
-        shiftTask.addWaitAction(0,   motorActions.extendo.setTargetPosition(150));
-        shiftTask.addWaitAction(0.6, motorActions.extendo.setTargetPosition(400));
+        shiftTask.addWaitAction(0,   motorActions.extendo.set(150));
+        shiftTask.addWaitAction(0.6, motorActions.extendo.set(400));
         // If we see RED, do a special SHIFT pattern
         shiftTask.addWaitAction(
                 () -> motorControl.getDetectedColor() == Enums.DetectedColor.RED,
                 new SequentialAction(
                         shiftX(-4.0),
                         new SleepAction(0.5),
-                        motorActions.extendo.setTargetPosition(375),
+                        motorActions.extendo.set(375),
                         shiftX(+2.0),
                         new SleepAction(0.5),
-                        motorActions.extendo.setTargetPosition(450)
+                        motorActions.extendo.set(450)
                 )
         );
         shiftTask.addWaitAction(
@@ -279,24 +249,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
 
         // 8) ScoreSub1
         scoreSub1Task = new PathChainTask(null, 0.5)
-                .addWaitAction(() -> motorControl.lift.closeEnough(770),
-                        new SequentialAction(
-                                motorActions.outTakeLinkage.sample(),
-                                new SleepAction(0.25),
-                                motorActions.outtakeTransfer(),
-                                motorActions.intakeArm.Extended(),
-                                motorActions.intakePivot.Extend()
-                        )
-                )
                 .setMaxWaitTime(2)
-                .addWaitAction(
-                        1.5,
-                        new SequentialAction(
-                                motorActions.outTakeLinkage.sample(),
-                                new SleepAction(0.25),
-                                motorActions.outtakeTransfer()
-                        )
-                )
                 .setWaitCondition(() -> motorControl.lift.closeEnough(770));
         tasks.add(scoreSub1Task);
 
@@ -315,7 +268,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
 
         // 10) Align2
         align2Task = new PathChainTask(null, 0);
-        align2Task.addWaitAction(0, motorActions.extendo.setTargetPosition(25));
+        align2Task.addWaitAction(0, motorActions.extendo.set(25));
         tasks.add(align2Task);
 
         // 11) SHIFT2
@@ -324,19 +277,18 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                         motorControl.getDetectedColor() != Enums.DetectedColor.UNKNOWN
                                 && motorControl.getDetectedColor() != Enums.DetectedColor.RED
                 )
-                .setMaxWaitTime(3.0)
-                .addWaitAction(0, motorActions.intakePivot.Grab());
-        shiftTask2.addWaitAction(0,   motorActions.extendo.setTargetPosition(100));
-        shiftTask2.addWaitAction(0.6, motorActions.extendo.setTargetPosition(400));
+                .setMaxWaitTime(3.0);
+        shiftTask2.addWaitAction(0,   motorActions.extendo.set(100));
+        shiftTask2.addWaitAction(0.6, motorActions.extendo.set(400));
         shiftTask2.addWaitAction(
                 () -> motorControl.getDetectedColor() == Enums.DetectedColor.RED,
                 new SequentialAction(
                         shiftX(-4.0),
                         new SleepAction(0.5),
-                        motorActions.extendo.setTargetPosition(375),
+                        motorActions.extendo.set(375),
                         shiftX(+2.0),
                         new SleepAction(0.5),
-                        motorActions.extendo.setTargetPosition(450)
+                        motorActions.extendo.set(450)
                 )
         );
         shiftTask2.addWaitAction(
@@ -352,22 +304,8 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
 
         // 12) ScoreSub2
         scoreSub2Task = new PathChainTask(null, 0.5)
-                .addWaitAction(() -> motorControl.lift.closeEnough(770),
-                        new SequentialAction(
-                                motorActions.outTakeLinkage.sample(),
-                                new SleepAction(1),
-                                motorActions.outtakeTransfer()
-                        )
-                )
+
                 .setMaxWaitTime(2)
-                .addWaitAction(
-                        1.5,
-                        new SequentialAction(
-                                motorActions.outTakeLinkage.sample(),
-                                new SleepAction(1),
-                                motorActions.outtakeTransfer()
-                        )
-                )
                 .addWaitAction(2, (packet) -> {
                     requestOpModeStop();
                     return false;
@@ -489,7 +427,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                     motorActions.intakeTransfer(),
                     motorActions.extendo.waitUntilFinished(0),
                     new SleepAction(0.3),
-                    motorActions.outtakeSampleAuto(),
+                    motorActions.outtakeSample(),
                     motorActions.spin.poop()
             ));
 
@@ -528,7 +466,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                         motorActions.intakeTransfer(),
                         motorActions.extendo.waitUntilFinished(0),
                         new SleepAction(0.5),
-                        motorActions.outtakeSampleAuto(),motorActions.spin.slowpoop()
+                        motorActions.outtakeSample(),motorActions.spin.slowpoop()
                 )))
                 .addParametricCallback(0, ()->run(motorActions.spin.slow()))
                 .setLinearHeadingInterpolation(curPose.getHeading(), scorePose.getHeading())
@@ -540,10 +478,6 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
         return follower.pathBuilder()
                 .addPath(new BezierCurve(new Point(curPose), new Point(parkControlPose), new Point(parkPose)))
                 .setLinearHeadingInterpolation(curPose.getHeading(), parkPose.getHeading())
-                .addParametricCallback(0, () -> run(new ParallelAction(
-                        motorActions.intakeArm.Extended(),
-                        motorActions.intakePivot.Extend()
-                )))
                 .build();
     }
 
@@ -567,13 +501,6 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
                 .addPath(new BezierLine(new Point(currentPose), new Point(targetPose)))
                 .setConstantHeadingInterpolation(targetPose.getHeading())
                 .setZeroPowerAccelerationMultiplier(7)
-                .addParametricCallback(0.0, () -> {
-                    run(new SequentialAction(
-                            motorActions.intakeArm.Grab(),
-                            motorActions.intakePivot.Down(),
-                            motorActions.spin.eatUntil(Enums.DetectedColor.BLUE, motorControl)
-                    ));
-                })
                 .build();
     }
 
@@ -619,7 +546,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
-        run(motorActions.outTakeClaw.Close());
+        run(motorActions.claw.close());
 
         buildPathChains();
         buildTaskList();
@@ -632,10 +559,7 @@ public class SubSampleAutoBlueOptimze extends PathChainAutoOpMode {
         taskPhase = 0;
         pathTimer.resetTimer();
 
-        run(motorActions.intakePivot.Transfer());
-        run(motorActions.outTakeLinkage.Transfer());
-        run(motorActions.intakeArm.Intake());
-        run(motorActions.outtakeSampleAuto());
+        run(motorActions.outtakeSample());
     }
 
     @Override
